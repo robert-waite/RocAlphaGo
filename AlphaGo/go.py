@@ -14,20 +14,18 @@ class GameState(object):
 	# amount of time, hence this shared lookup table {boardsize: {position: [neighbors]}}
 	__NEIGHBORS_CACHE = {}
 
-	def __init__(self, size=19, komi=7.5):
+	def __init__(self, size=19, komi=7.5, enforce_superko=True):
 		self.board = np.zeros((size, size))
 		self.board.fill(EMPTY)
 		self.size = size
-		self.turns_played = 0
 		self.current_player = BLACK
 		self.ko = None
-		self.komi = komi
+		self.komi = komi  # Komi is number of extra points WHITE gets for going 2nd
 		self.handicaps = []
 		self.history = []
 		self.num_black_prisoners = 0
 		self.num_white_prisoners = 0
 		self.is_end_of_game = False
-		self.komi = komi  # Komi is number of extra points WHITE gets for going 2nd
 		# Each pass move by a player subtracts a point
 		self.passes_white = 0
 		self.passes_black = 0
@@ -54,6 +52,15 @@ class GameState(object):
 		self.__legal_eyes_cache = None
 		# on-the-fly record of 'age' of each stone
 		self.stone_ages = np.zeros((size, size), dtype=np.int) - 1
+
+		# setup Zobrist hash to keep track of board state
+		self.enforce_superko = enforce_superko
+		rng = np.random.RandomState(0)
+		self.hash_lookup = {
+			WHITE: rng.randint(0, np.iinfo(np.uint64).max, size=(size, size), dtype='uint64'),
+			BLACK: rng.randint(0, np.iinfo(np.uint64).max, size=(size, size), dtype='uint64')}
+		self.current_hash = np.uint64(0)
+		self.previous_hashes = set()
 
 	def get_group(self, position):
 		"""Get the group of connected same-color stones to the given position
@@ -146,11 +153,16 @@ class GameState(object):
 			self.liberty_sets[gx][gy] = merged_libs
 			self.liberty_counts[gx][gy] = count_merged_libs
 
+	def _update_hash(self, action, color):
+		(x, y) = action
+		self.current_hash = np.bitwise_xor(self.current_hash, self.hash_lookup[color][x][y])
+
 	def _remove_group(self, group):
 		"""A private helper function to take a group off the board (due to capture),
 		updating group sets and liberties along the way
 		"""
 		for (x, y) in group:
+			self._update_hash((x, y), self.board[x, y])
 			self.board[x, y] = EMPTY
 		for (x, y) in group:
 			# clear group_sets for all positions in 'group'
@@ -171,15 +183,17 @@ class GameState(object):
 	def copy(self):
 		"""get a copy of this Game state
 		"""
-		other = GameState(self.size)
+		other = GameState(self.size, self.komi)
 		other.board = self.board.copy()
-		other.turns_played = self.turns_played
 		other.current_player = self.current_player
 		other.ko = self.ko
 		other.handicaps = list(self.handicaps)
 		other.history = list(self.history)
 		other.num_black_prisoners = self.num_black_prisoners
 		other.num_white_prisoners = self.num_white_prisoners
+		other.enforce_superko = self.enforce_superko
+		other.current_hash = self.current_hash.copy()
+		other.previous_hashes = self.previous_hashes.copy()
 
 		# update liberty and group sets. Note: calling set(a) on another set
 		# copies the entries (any iterable as an argument would work so
@@ -214,18 +228,45 @@ class GameState(object):
 			return True
 		return False
 
+	def is_positional_superko(self, action):
+		if len(self.handicaps) == 0 and self.current_player == BLACK:
+			player_history = self.history[0::2]
+		elif len(self.handicaps) > 0 and self.current_player == WHITE:
+			player_history = self.history[0::2]
+		else:
+			player_history = self.history[1::2]
+
+		if action not in self.handicaps and action not in player_history:
+			return False
+
+		state_copy = self.copy()
+		state_copy.enforce_superko = False
+		state_copy.do_move(action)
+
+		if state_copy.current_hash in self.previous_hashes:
+			return True
+		else:
+			return False
+
 	def is_legal(self, action):
 		"""determine if the given action (x,y tuple) is a legal move
 		note: we only check ko, not superko at this point (TODO?)
 		"""
-		# passing move
+		# passing is always legal
 		if action is PASS_MOVE:
 			return True
 		(x, y) = action
-		empty = self.board[x][y] == EMPTY
-		suicide = self.is_suicide(action)
-		ko = action == self.ko
-		return self._on_board(action) and (not suicide) and (not ko) and empty
+		if not self._on_board(action):
+			return False
+		if self.board[x][y] != EMPTY:
+			return False
+		if self.is_suicide(action):
+			return False
+		if action == self.ko:
+			return False
+		if self.enforce_superko and self.is_positional_superko(action):
+			return False
+		return True
 
 	def is_eyeish(self, position, owner):
 		"""returns whether the position is empty and is surrounded by all stones of 'owner'
@@ -236,7 +277,7 @@ class GameState(object):
 
 		for (nx, ny) in self._neighbors(position):
 			if self.board[nx, ny] != owner:
-					return False
+				return False
 		return True
 
 	def is_eye(self, position, owner, stack=[]):
@@ -312,18 +353,18 @@ class GameState(object):
 			winner = 0
 		return winner
 
+	def get_current_player(self):
+		"""Returns the color of the player who will make the next move.
+		"""
+		return self.current_player
+
 	def place_handicaps(self, actions):
 		if len(self.history) > 0:
 			raise IllegalMove("Cannot place handicap on a started game")
-		self.handicaps = actions
+		self.handicaps.extend(actions)
 		for action in actions:
-			self.stone_ages[self.stone_ages >= 0] += 1
-			(x, y) = action
-			self.board[x][y] = BLACK
-			self._update_neighbors(action)
-			self.stone_ages[x][y] = 0
-		self.__legal_move_cache = None
-		self.current_player = WHITE
+			self.do_move(action, BLACK)
+		self.history = []
 
 	def do_move(self, action, color=None):
 		"""Play stone at action=(x,y). If color is not specified, current_player is used
@@ -341,6 +382,7 @@ class GameState(object):
 			if action is not PASS_MOVE:
 				(x, y) = action
 				self.board[x][y] = color
+				self._update_hash(action, color)
 				self._update_neighbors(action)
 				self.stone_ages[x][y] = 0
 
@@ -365,6 +407,8 @@ class GameState(object):
 							if would_recapture and recapture_size_is_1:
 								# note: (nx,ny) is the stone that was captured
 								self.ko = (nx, ny)
+				# _remove_group has finished updating the hash
+				self.previous_hashes.add(self.current_hash)
 			else:
 				if color == BLACK:
 					self.passes_black += 1
@@ -372,7 +416,6 @@ class GameState(object):
 					self.passes_white += 1
 			# next turn
 			self.current_player = -color
-			self.turns_played += 1
 			self.history.append(action)
 			self.__legal_move_cache = None
 		else:

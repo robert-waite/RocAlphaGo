@@ -4,9 +4,9 @@ from AlphaGo.ai import ProbabilisticPolicyPlayer
 from AlphaGo.go import GameState
 from AlphaGo.util import plot_network_output
 from AlphaGo.util import save_gamestate_to_sgf
-from interface.gtp_wrapper import parse_vertex
 import AlphaGo.go as go
 import uuid
+import gtp
 
 def get_handicap_vertices(number_of_stones):
 	if number_of_stones == 2:
@@ -29,7 +29,7 @@ def get_handicap_vertices(number_of_stones):
 	moves = vertex_string.split()
 	vertex_list = []
 	for move in moves:
-		(x, y) = parse_vertex(move)
+		(x, y) = gtp.parse_vertex(move)
 		vertex_list.append((x - 1, y - 1))
 	return vertex_list
 
@@ -53,6 +53,7 @@ def playout(player1, player2, bd_size=19, print_game=False, player1_name='Player
 			print 'found excessively long game'
 			break
 
+	print counter
 	if print_game:
 		save_gamestate_to_sgf(gamestate, save_dir, save_name, player1_name, player2_name)
 
@@ -76,8 +77,8 @@ print playout(player2, player1, print_game=True, save_name="as_white.sgf")
 
 playouts = 5
 
-player1 = ProbabilisticPolicyPlayer(player1_policy, temperature=.0001)
-player2 = ProbabilisticPolicyPlayer(player2_policy, temperature=.0001)
+player1 = ProbabilisticPolicyPlayer(player1_policy, temperature=.67)
+player2 = ProbabilisticPolicyPlayer(player2_policy, temperature=.67)
 player1_wins = 0.0
 for i in range(0, playouts):
 	filename = str(uuid.uuid4()) + '.sgf'

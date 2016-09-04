@@ -158,6 +158,8 @@ def sgf_iter_states(sgf_string, include_end=True):
 			elif 'B' in props:
 				move = _parse_sgf_move(props['B'][0])
 				player = go.BLACK
+			inverted = [18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+			move = (move[0], inverted[move[1]])
 			yield (gs, move, player)
 			# update state to n+1
 			gs.do_move(move, player)
@@ -188,7 +190,7 @@ def plot_network_output(scores, board, history, out_directory, western_column_no
 
 	# Wooden background color
 	ax.set_axis_bgcolor('#fec97b')
-	plt.gca().invert_yaxis()
+	#plt.gca().invert_yaxis()
 
 	# Setup ticks
 	ax.tick_params(axis='both', length=0, width=0)
@@ -256,6 +258,6 @@ def plot_network_output(scores, board, history, out_directory, western_column_no
 			plt.scatter(last_move[0], last_move[1], marker='s', color='r', edgecolors='k', s=100, zorder=4)
 
 	move_number = len(history)
-	plt.savefig(os.path.join(out_directory, 'move-{}.png'.format(move_number)), bbox_inches='tight')
+	plt.savefig(os.path.join(out_directory, 'move-{0:0>4}.png'.format(move_number)), bbox_inches='tight')
 	#plt.show()
 	plt.close()

@@ -59,7 +59,7 @@ class CNNPolicy(NeuralNetBase):
 		tensor = self.preprocessor.state_to_tensor(state)
 		# run the tensor through the network
 		network_output = self.forward(tensor)
-		#plot_network_output(network_output, state.board, state.history, '/alphago/heatmaps')
+		#plot_network_output(network_output, state.board, state.history, '/alphago/tourney/heatmaps3')
 		moves = moves or state.get_legal_moves()
 		return self._select_moves_and_normalize(network_output[0], moves, state.size)
 

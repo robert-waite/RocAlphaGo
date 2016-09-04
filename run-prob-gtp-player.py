@@ -32,5 +32,4 @@ policy.model.load_weights(WEIGHTS)
 #policy_function = policy.eval_state
 
 player = ProbabilisticPolicyPlayer(policy, temperature=TEMP)
-run_gtp(player)
-
+run_gtp(player, name='NeuralZ', version='0.1')
