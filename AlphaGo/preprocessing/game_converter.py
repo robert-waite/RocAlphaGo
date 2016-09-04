@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import numpy as np
 from AlphaGo.preprocessing.preprocessing import Preprocess
-from AlphaGo.util import sgf_iter_states
+from AlphaGo.util import sgf_iter_states, get_random_move_from_phase
 import AlphaGo.go as go
 import os
 import warnings
 import sgf
-import h5py as h5
+#import h5py as h5
 
 
 class SizeMismatchError(Exception):
@@ -38,6 +38,47 @@ class game_converter:
 			if move != go.PASS_MOVE:
 				nn_input = self.feature_processor.state_to_tensor(state)
 				yield (nn_input, move)
+
+	def convert_game_special(self, file_name, phase, bd_size):
+
+		with open(file_name, 'r') as file_object:
+			pair = get_random_move_from_phase(file_object.read(), phase)
+
+		state = pair[0]
+		move = pair[1]
+
+		# from AlphaGo.util import save_gamestate_to_sgf
+		# import uuid
+		# save_gamestate_to_sgf(state, 'C:\Users\puff\Desktop\Output Sgfs', str(uuid.uuid4()) + '.sgf')
+
+		if state.size != bd_size:
+			raise SizeMismatchError()
+		if move != go.PASS_MOVE:
+			nn_input = self.feature_processor.state_to_tensor(state)
+			return (nn_input, move)
+		else:
+			return None
+
+	def sgfs_to_special(self, sgf_files, phase, bd_size=19, ignore_errors=False, verbose=True):
+
+		number_processed = 0
+		output = []
+		for file_name in sgf_files:
+			try:
+				a_move = self.convert_game_special(file_name, phase, bd_size)
+				if a_move != None:
+					output.append((a_move[0], a_move[1]))
+					number_processed = number_processed + 1
+					if number_processed == 16:
+						return output
+			except go.IllegalMove:
+				warnings.warn("Illegal Move encountered in %s\n\tdropping the remainder of the game" % file_name)
+			except sgf.ParseException:
+				warnings.warn("Could not parse %s\n\tdropping game" % file_name)
+			except SizeMismatchError:
+				warnings.warn("Skipping %s\n\twrong board size" % file_name)
+			except Exception as e:
+				warnings.warn("Unhandled exception %s\n\tdropping game" % str(e))
 
 	def sgfs_to_hdf5(self, sgf_files, hdf5_file, bd_size=19, ignore_errors=True, verbose=False):
 		"""Convert all files in the iterable sgf_files into an hdf5 group to be stored in hdf5_file

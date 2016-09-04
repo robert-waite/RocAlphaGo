@@ -22,6 +22,7 @@ class GameState(object):
 		self.current_player = BLACK
 		self.ko = None
 		self.komi = komi
+		self.handicaps = []
 		self.history = []
 		self.num_black_prisoners = 0
 		self.num_white_prisoners = 0
@@ -175,6 +176,7 @@ class GameState(object):
 		other.turns_played = self.turns_played
 		other.current_player = self.current_player
 		other.ko = self.ko
+		other.handicaps = list(self.handicaps)
 		other.history = list(self.history)
 		other.num_black_prisoners = self.num_black_prisoners
 		other.num_white_prisoners = self.num_white_prisoners
@@ -309,6 +311,19 @@ class GameState(object):
 			# Tie
 			winner = 0
 		return winner
+
+	def place_handicaps(self, actions):
+		if len(self.history) > 0:
+			raise IllegalMove("Cannot place handicap on a started game")
+		self.handicaps = actions
+		for action in actions:
+			self.stone_ages[self.stone_ages >= 0] += 1
+			(x, y) = action
+			self.board[x][y] = BLACK
+			self._update_neighbors(action)
+			self.stone_ages[x][y] = 0
+		self.__legal_move_cache = None
+		self.current_player = WHITE
 
 	def do_move(self, action, color=None):
 		"""Play stone at action=(x,y). If color is not specified, current_player is used
