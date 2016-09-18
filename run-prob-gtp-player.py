@@ -31,5 +31,5 @@ policy = CNNPolicy.load_model(MODEL)
 policy.model.load_weights(WEIGHTS)
 #policy_function = policy.eval_state
 
-player = ProbabilisticPolicyPlayer(policy, temperature=TEMP)
+player = ProbabilisticPolicyPlayer(policy, temperature=TEMP, pass_when_offered=True)
 run_gtp(player, name='NeuralZ', version='0.1')
