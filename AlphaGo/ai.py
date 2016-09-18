@@ -9,7 +9,7 @@ class GreedyPolicyPlayer(object):
 	move each turn)
 	"""
 
-	def __init__(self, policy_function, pass_when_offered=True):
+	def __init__(self, policy_function, pass_when_offered=False):
 		self.policy = policy_function
 		self.pass_when_offered = pass_when_offered
 
@@ -34,7 +34,7 @@ class ProbabilisticPolicyPlayer(object):
 	(high temperature) or towards greedy play (low temperature)
 	"""
 
-	def __init__(self, policy_function, temperature=1.0, pass_when_offered=True):
+	def __init__(self, policy_function, temperature=1.0, pass_when_offered=False):
 		assert(temperature > 0.0)
 		self.policy = policy_function
 		self.beta = 1.0 / temperature
@@ -78,9 +78,9 @@ class ProbabilisticPolicyPlayer(object):
 
 
 class MCTSPlayer(object):
-	def __init__(self, policy_function, value_function, rollout_function, lmbda=.5, c_puct=5, rollout_limit=500, playout_depth=40, n_search=100):
+	def __init__(self, value_function, policy_function, rollout_function, lmbda=.5, c_puct=5, rollout_limit=500, playout_depth=40, n_playout=100):
 		self.mcts = mcts.MCTS(value_function, policy_function, rollout_function, lmbda, c_puct,
-					rollout_limit, playout_depth, n_search)
+					rollout_limit, playout_depth, n_playout)
 
 	def get_move(self, state):
 		sensible_moves = [move for move in state.get_legal_moves() if not state.is_eye(move, state.current_player)]

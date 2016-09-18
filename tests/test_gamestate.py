@@ -63,12 +63,12 @@ class TestKo(unittest.TestCase):
 		gs = GameState(size=9)
 		for move in move_list:
 			gs.do_move(move)
-		self.assertFalse(gs.is_legal((1, 0)))
+		self.assertTrue(gs.is_legal((1, 0)))
 
-		gs = GameState(size=9, enforce_superko=False)
+		gs = GameState(size=9, enforce_superko=True)
 		for move in move_list:
 			gs.do_move(move)
-		self.assertTrue(gs.is_legal((1, 0)))
+		self.assertFalse(gs.is_legal((1, 0)))
 
 
 class TestEye(unittest.TestCase):

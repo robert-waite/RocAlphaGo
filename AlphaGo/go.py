@@ -14,7 +14,7 @@ class GameState(object):
 	# amount of time, hence this shared lookup table {boardsize: {position: [neighbors]}}
 	__NEIGHBORS_CACHE = {}
 
-	def __init__(self, size=19, komi=7.5, enforce_superko=True):
+	def __init__(self, size=19, komi=7.5, enforce_superko=False):
 		self.board = np.zeros((size, size))
 		self.board.fill(EMPTY)
 		self.size = size
@@ -57,8 +57,8 @@ class GameState(object):
 		self.enforce_superko = enforce_superko
 		rng = np.random.RandomState(0)
 		self.hash_lookup = {
-			WHITE: rng.randint(0, np.iinfo(np.uint64).max, size=(size, size), dtype='uint64'),
-			BLACK: rng.randint(0, np.iinfo(np.uint64).max, size=(size, size), dtype='uint64')}
+			WHITE: rng.randint(np.iinfo(np.uint64).max, size=(size, size), dtype='uint64'),
+			BLACK: rng.randint(np.iinfo(np.uint64).max, size=(size, size), dtype='uint64')}
 		self.current_hash = np.uint64(0)
 		self.previous_hashes = set()
 
@@ -229,6 +229,9 @@ class GameState(object):
 		return False
 
 	def is_positional_superko(self, action):
+		"""Find all actions that the current_player has done in the past, taking into account the fact that
+		history starts with BLACK when there are no handicaps or with WHITE when there are.
+		"""
 		if len(self.handicaps) == 0 and self.current_player == BLACK:
 			player_history = self.history[0::2]
 		elif len(self.handicaps) > 0 and self.current_player == WHITE:
@@ -353,11 +356,6 @@ class GameState(object):
 			winner = 0
 		return winner
 
-	def get_current_player(self):
-		"""Returns the color of the player who will make the next move.
-		"""
-		return self.current_player
-
 	def place_handicaps(self, actions):
 		if len(self.history) > 0:
 			raise IllegalMove("Cannot place handicap on a started game")
@@ -365,6 +363,11 @@ class GameState(object):
 		for action in actions:
 			self.do_move(action, BLACK)
 		self.history = []
+
+	def get_current_player(self):
+		"""Returns the color of the player who will make the next move.
+		"""
+		return self.current_player
 
 	def do_move(self, action, color=None):
 		"""Play stone at action=(x,y). If color is not specified, current_player is used
