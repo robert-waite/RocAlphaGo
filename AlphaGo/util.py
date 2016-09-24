@@ -5,6 +5,8 @@ from AlphaGo import go
 
 # for board location indexing
 LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+REV_LETTERS = 'SRQPONMLKJIHGFEDCBA'
+
 
 
 def flatten_idx(position, size):
@@ -79,7 +81,7 @@ def save_gamestate_to_sgf(gamestate, path, filename, black_player_name='Unknown'
 		str_list.append('HA[{}]'.format(len(gamestate.handicaps)))
 		str_list.append(';AB')
 		for handicap in gamestate.handicaps:
-			str_list.append('[{}{}]'.format(LETTERS[handicap[0]].lower(), LETTERS[handicap[1]].lower()))
+			str_list.append('[{}{}]'.format(LETTERS[handicap[0]].lower(), REV_LETTERS[handicap[1]].lower()))
 	# Move list
 	for move, color in zip(gamestate.history, itertools.cycle(cycle_string)):
 		# Move color prefix
@@ -88,7 +90,7 @@ def save_gamestate_to_sgf(gamestate, path, filename, black_player_name='Unknown'
 		if move is None:
 			str_list.append('[tt]')
 		else:
-			str_list.append('[{}{}]'.format(LETTERS[move[0]].lower(), LETTERS[move[1]].lower()))
+			str_list.append('[{}{}]'.format(LETTERS[move[0]].lower(), REV_LETTERS[move[1]].lower()))
 	str_list.append(')')
 	with open(os.path.join(path, filename), "w") as f:
 		f.write(''.join(str_list))
