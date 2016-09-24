@@ -38,6 +38,7 @@ class ExtendedGtpEngine(gtp.Engine):
 			return output
 		except multiprocessing.TimeoutError:
 			pool.terminate()
+			pool.close()
 			# if can't get answer from GnuGo, return no result
 			return ''
 
