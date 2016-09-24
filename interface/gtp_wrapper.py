@@ -5,11 +5,12 @@ from AlphaGo import go
 from AlphaGo.util import save_gamestate_to_sgf
 
 
-def run_gnugo(sgf_file_name, command):
+def run_gnugo(sgf_file_name, command, queue):
 	from distutils import spawn
 	if spawn.find_executable('gnugo'):
 		from subprocess import Popen, PIPE
 		p = Popen(['gnugo', '--chinese-rules', '--mode', 'gtp', '-l', sgf_file_name], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+		queue.put(p)
 		out_bytes = p.communicate(input=command)[0]
 		return out_bytes.decode('utf-8')[2:]
 	else:
@@ -32,14 +33,16 @@ class ExtendedGtpEngine(gtp.Engine):
 	def call_gnugo(self, sgf_file_name, command):
 		try:
 			pool = multiprocessing.Pool(processes=1)
-			result = pool.apply_async(run_gnugo, (sgf_file_name, command))
+			manager = multiprocessing.Manager()
+			queue = manager.Queue()
+			result = pool.apply_async(run_gnugo, (sgf_file_name, command, queue))
 			output = result.get(timeout=10)
 			pool.close()
 			return output
 		except multiprocessing.TimeoutError:
+			print "timeout"
+			queue.get().kill()
 			pool.terminate()
-			pool.close()
-			pool.join()
 			# if can't get answer from GnuGo, return no result
 			return ''
 
