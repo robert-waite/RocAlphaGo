@@ -5,7 +5,6 @@ from AlphaGo import go
 
 # for board location indexing
 LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-REV_LETTERS = 'SRQPONMLKJIHGFEDCBA'
 
 
 
@@ -64,7 +63,7 @@ def sgf_to_gamestate(sgf_string):
 	return gs
 
 
-def save_gamestate_to_sgf(gamestate, path, filename, black_player_name='Unknown', white_player_name='Unknown', size=19, komi=7.5):
+def save_gamestate_to_sgf(gamestate, path, filename, black_player_name='Unknown', white_player_name='Unknown', size=19, komi=7.5, invert_y=False):
 	"""Creates a simplified sgf for viewing playouts or positions
 	"""
 	str_list = []
@@ -75,13 +74,18 @@ def save_gamestate_to_sgf(gamestate, path, filename, black_player_name='Unknown'
 	str_list.append('PB[{}]'.format(black_player_name))
 	str_list.append('PW[{}]'.format(white_player_name))
 	cycle_string = 'BW'
+	# Letters used for sgf coordinates
+	sgf_x = LETTERS[0:19]
+	sgf_y = LETTERS[0:19]
+	if invert_y:
+		sgf_y = sgf_y[::-1]
 	# Handle handicaps
 	if len(gamestate.handicaps) > 0:
 		cycle_string = 'WB'
 		str_list.append('HA[{}]'.format(len(gamestate.handicaps)))
 		str_list.append(';AB')
 		for handicap in gamestate.handicaps:
-			str_list.append('[{}{}]'.format(LETTERS[handicap[0]].lower(), REV_LETTERS[handicap[1]].lower()))
+			str_list.append('[{}{}]'.format(sgf_x[handicap[0]].lower(), sgf_y[handicap[1]].lower()))
 	# Move list
 	for move, color in zip(gamestate.history, itertools.cycle(cycle_string)):
 		# Move color prefix
@@ -90,7 +94,7 @@ def save_gamestate_to_sgf(gamestate, path, filename, black_player_name='Unknown'
 		if move is None:
 			str_list.append('[tt]')
 		else:
-			str_list.append('[{}{}]'.format(LETTERS[move[0]].lower(), REV_LETTERS[move[1]].lower()))
+			str_list.append('[{}{}]'.format(sgf_x[move[0]].lower(), sgf_y[move[1]].lower()))
 	str_list.append(')')
 	with open(os.path.join(path, filename), "w") as f:
 		f.write(''.join(str_list))
