@@ -124,7 +124,7 @@ class GTPGameConnector(object):
 	def get_current_state_as_sgf(self):
 		from tempfile import NamedTemporaryFile
 		temp_file = NamedTemporaryFile(delete=False)
-		save_gamestate_to_sgf(self._state, '', temp_file.name)
+		save_gamestate_to_sgf(self._state, '', temp_file.name, invert_y=True)
 		return temp_file.name
 
 	def place_handicaps(self, vertices):
