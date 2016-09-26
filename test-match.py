@@ -49,8 +49,8 @@ print playout(player2, player1, print_game=True, save_name="as_white.sgf")
 
 playouts = 8
 
-player1 = ProbabilisticPolicyPlayer(player1_policy, temperature=.01)
-player2 = ProbabilisticPolicyPlayer(player2_policy, temperature=.01)
+player1 = ProbabilisticPolicyPlayer(player1_policy, temperature=.05)
+player2 = ProbabilisticPolicyPlayer(player2_policy, temperature=.05)
 player1_wins = 0.0
 for i in range(0, playouts):
 	filename = str(uuid.uuid4()) + '.sgf'
