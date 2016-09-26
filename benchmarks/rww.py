@@ -11,7 +11,7 @@ stats_file = os.path.join(datadir, 'rww.prof')
 
 profile = Profile()
 arguments = (modelfile, weights, outdir, '--learning-rate', '0.001', '--save-every', '100',
-             '--game-batch', '64', '--iterations', '3', '--verbose')
+             '--game-batch', '16', '--iterations', '1', '--verbose')
 
 profile.runcall(run_training, arguments)
 profile.dump_stats(stats_file)
