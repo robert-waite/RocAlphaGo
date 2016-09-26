@@ -33,7 +33,8 @@ def playout(player1, player2, bd_size=19, print_game=False, player1_name='Player
 
 
 model = '/alphago/SLv1/my_model.json'
-player1_weights = '/alphago/competition/weights.RLTEST.hdf5'
+player1_weights = '/alphago/competition/weights.00006-gold-third-.002lr.hdf5'
+#player2_weights = '/alphago/competition/weights.00006-gold-third-.002lr.hdf5'
 player2_weights = '/alphago/competition/weights.00006-gold-third-.002lr.hdf5'
 player1_policy = CNNPolicy.load_model(model)
 player1_policy.model.load_weights(player1_weights)
@@ -46,7 +47,7 @@ player2 = GreedyPolicyPlayer(player2_policy)
 print playout(player1, player2, print_game=True, save_name="as_black.sgf")
 print playout(player2, player1, print_game=True, save_name="as_white.sgf")
 
-playouts = 100
+playouts = 32
 
 player1 = ProbabilisticPolicyPlayer(player1_policy, temperature=.67)
 player2 = ProbabilisticPolicyPlayer(player2_policy, temperature=.67)
