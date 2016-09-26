@@ -8,7 +8,7 @@ import uuid
 
 
 def playout(player1, player2, bd_size=19, print_game=False, player1_name='Player 1', player2_name='Player 2', save_dir='/alphago/playouts', save_name='record.sgf'):
-	gamestate = GameState(size=bd_size, enforce_superko=True)
+	gamestate = GameState(size=bd_size, enforce_superko=False)
 	counter = 0
 	# Play 10 games
 	while True:
