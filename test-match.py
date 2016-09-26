@@ -8,7 +8,7 @@ import uuid
 
 
 def playout(player1, player2, bd_size=19, print_game=False, player1_name='Player 1', player2_name='Player 2', save_dir='/alphago/playouts', save_name='record.sgf'):
-	gamestate = GameState(size=bd_size, enforce_superko=False)
+	gamestate = GameState(size=bd_size, enforce_superko=True)
 	counter = 0
 	# Play 10 games
 	while True:
@@ -47,10 +47,10 @@ player2 = GreedyPolicyPlayer(player2_policy)
 print playout(player1, player2, print_game=True, save_name="as_black.sgf")
 print playout(player2, player1, print_game=True, save_name="as_white.sgf")
 
-playouts = 32
+playouts = 8
 
-player1 = ProbabilisticPolicyPlayer(player1_policy, temperature=.67)
-player2 = ProbabilisticPolicyPlayer(player2_policy, temperature=.67)
+player1 = ProbabilisticPolicyPlayer(player1_policy, temperature=.1)
+player2 = ProbabilisticPolicyPlayer(player2_policy, temperature=.1)
 player1_wins = 0.0
 for i in range(0, playouts):
 	filename = str(uuid.uuid4()) + '.sgf'
