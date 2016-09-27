@@ -8,7 +8,7 @@ import uuid
 
 
 def playout(player1, player2, bd_size=19, print_game=False, player1_name='Player 1', player2_name='Player 2', save_dir='/alphago/playouts', save_name='record.sgf'):
-	gamestate = GameState(size=bd_size, enforce_superko=True)
+	gamestate = GameState(size=bd_size, enforce_superko=False)
 	counter = 0
 	# Play 10 games
 	while True:
@@ -23,7 +23,7 @@ def playout(player1, player2, bd_size=19, print_game=False, player1_name='Player
 			break
 		if counter > 1000:
 			print 'found excessively long game'
-			break
+			return 0
 
 	print counter
 	if print_game:
@@ -33,9 +33,9 @@ def playout(player1, player2, bd_size=19, print_game=False, player1_name='Player
 
 
 model = '/alphago/SLv1/my_model.json'
-player1_weights = '/alphago/competition/weights.00006-gold-third-.002lr.hdf5'
+player1_weights = '/alphago/competition/weights.community.01088.hdf5'
 #player2_weights = '/alphago/competition/weights.00006-gold-third-.002lr.hdf5'
-player2_weights = '/alphago/competition/weights.00006-gold-third-.002lr.hdf5'
+player2_weights = '/alphago/competition/weights.00740-wrongu.hdf5'
 player1_policy = CNNPolicy.load_model(model)
 player1_policy.model.load_weights(player1_weights)
 player2_policy = CNNPolicy.load_model(model)
@@ -47,10 +47,10 @@ player2 = GreedyPolicyPlayer(player2_policy)
 print playout(player1, player2, print_game=True, save_name="as_black.sgf")
 print playout(player2, player1, print_game=True, save_name="as_white.sgf")
 
-playouts = 8
+playouts = 150
 
-player1 = ProbabilisticPolicyPlayer(player1_policy, temperature=.1)
-player2 = ProbabilisticPolicyPlayer(player2_policy, temperature=.1)
+player1 = ProbabilisticPolicyPlayer(player1_policy, temperature=.2)
+player2 = ProbabilisticPolicyPlayer(player2_policy, temperature=.2)
 player1_wins = 0.0
 for i in range(0, playouts):
 	filename = str(uuid.uuid4()) + '.sgf'
@@ -65,6 +65,7 @@ for i in range(0, playouts):
 		player1_wins += 1
 
 print player1_wins
+# right now a draw will count as win for opponent. thinking rare enough to not matter
 print player1_wins / (playouts * 2.0)
 
 
