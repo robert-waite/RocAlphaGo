@@ -33,7 +33,7 @@ def playout(player1, player2, bd_size=19, print_game=False, player1_name='Player
 
 
 model = '/alphago/SLv1/my_model.json'
-player1_weights = '/alphago/competition/weights.00006-gold-third-.002lr.hdf5'
+player1_weights = '/alphago/competition/weights.community.01088.hdf5'
 #player2_weights = '/alphago/competition/weights.00006-gold-third-.002lr.hdf5'
 player2_weights = '/alphago/competition/weights.community.01088.hdf5'
 player1_policy = CNNPolicy.load_model(model)
