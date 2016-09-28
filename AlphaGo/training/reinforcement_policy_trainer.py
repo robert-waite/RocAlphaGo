@@ -209,13 +209,12 @@ def run_training(cmd_line_args=None):
 		with open(os.path.join(args.out_directory, "metadata.json"), "w") as f:
 			json.dump(metadata, f, sort_keys=True, indent=2)
 
-	def log_prob_rl_loss(y_true, y_pred):
-		y_pred_clipped = K.clip(y_pred, K.epsilon(), 1 - K.epsilon())
-		return K.log(y_pred_clipped) * y_true
+	def log_loss(y_true, y_pred):
+		return y_true * K.log(K.clip(y_pred, K.epsilon(), 1.0 - K.epsilon()))
 
 	# Set SGD and compile
 	sgd = SGD(lr=args.learning_rate)
-	player.policy.model.compile(loss=log_prob_rl_loss, optimizer=sgd)
+	player.policy.model.compile(loss=log_loss, optimizer=sgd)
 	board_size = player.policy.model.input_shape[-1]
 	for i_iter in xrange(1, args.iterations + 1):
 		# Train mini-batches by randomly choosing opponent from pool (possibly self)
