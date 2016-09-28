@@ -52,21 +52,30 @@ playouts = 150
 player1 = ProbabilisticPolicyPlayer(player1_policy, temperature=.2)
 player2 = ProbabilisticPolicyPlayer(player2_policy, temperature=.2)
 player1_wins = 0.0
+player2_wins = 0.0
 for i in range(0, playouts):
 	filename = str(uuid.uuid4()) + '.sgf'
 	winner = playout(player1, player2, player1_name='player1', player2_name='player2', print_game=False, save_name=filename)
 	print winner
 	if winner == go.BLACK:
 		player1_wins += 1
+	else:
+		player2_wins += 1
 	filename = str(uuid.uuid4()) + '.sgf'
 	winner = playout(player2, player1, player1_name='player2', player2_name='player1', print_game=False, save_name=filename)
 	print winner
 	if winner == go.WHITE:
 		player1_wins += 1
+	else:
+		player2_wins += 1
 
+print player1_weights
 print player1_wins
+print player2_weights
+print player2_wins
 # right now a draw will count as win for opponent. thinking rare enough to not matter
 print player1_wins / (playouts * 2.0)
+print player2_wins / (playouts * 2.0)
 
 
 
