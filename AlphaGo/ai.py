@@ -17,6 +17,8 @@ class GreedyPolicyPlayer(object):
 		if self.pass_when_offered:
 			if len(state.history) > 100 and state.history[-1] == go.PASS_MOVE:
 				return go.PASS_MOVE
+		if len(state.history > 800):
+			return go.PASS_MOVE
 		sensible_moves = [move for move in state.get_legal_moves() if not state.is_eye(move, state.current_player)]
 		if len(sensible_moves) > 0:
 			move_probs = self.policy.eval_state(state, sensible_moves)
@@ -44,6 +46,8 @@ class ProbabilisticPolicyPlayer(object):
 		if self.pass_when_offered:
 			if len(state.history) > 100 and state.history[-1] == go.PASS_MOVE:
 				return go.PASS_MOVE
+		if len(state.history > 800):
+			return go.PASS_MOVE
 		sensible_moves = [move for move in state.get_legal_moves() if not state.is_eye(move, state.current_player)]
 		if len(sensible_moves) > 0:
 			move_probs = self.policy.eval_state(state, sensible_moves)
