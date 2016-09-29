@@ -234,8 +234,9 @@ def run_training(cmd_line_args=None):
 		metadata["win_ratio"][player_weights] = (opp_weights, win_ratio)
 		train_batch(player, X_list, y_list, won_game_list, args.learning_rate)
 		# Save intermediate models
-		player_weights = "weights.%05d.hdf5" % i_iter
-		player.policy.model.save_weights(os.path.join(args.out_directory, player_weights))
+		if i_iter % 100 == 0:
+			player_weights = "weights.%05d.hdf5" % i_iter
+			player.policy.model.save_weights(os.path.join(args.out_directory, player_weights))
 		# add player to batch of oppenents once in a while
 		if i_iter % args.save_every == 0:
 			metadata["opponents"].append(player_weights)
