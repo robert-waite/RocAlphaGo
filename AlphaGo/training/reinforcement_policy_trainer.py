@@ -223,14 +223,14 @@ def run_training(cmd_line_args=None):
 	player.policy.model.compile(loss=log_loss, optimizer=sgd)
 	board_size = player.policy.model.input_shape[-1]
 
-	opp_weights = np.random.choice(metadata["opponents"])
-	opp_path = os.path.join(args.out_directory, opp_weights)
-	# load new weights into opponent, but otherwise its the same
-	opponent.policy.model.load_weights(opp_path)
-	
 	for i_iter in xrange(1, args.iterations + 1):
 		# Train mini-batches by randomly choosing opponent from pool (possibly self)
 		# and playing game_batch games against them
+
+		opp_weights = np.random.choice(metadata["opponents"])
+		opp_path = os.path.join(args.out_directory, opp_weights)
+		# load new weights into opponent, but otherwise its the same
+		opponent.policy.model.load_weights(opp_path)
 
 		if args.verbose:
 			print "Batch {}\tsampled opponent is {}".format(i_iter, opp_weights)
