@@ -214,7 +214,7 @@ def run_training(cmd_line_args=None):
 
 	# Set SGD and compile
 	sgd = SGD(lr=args.learning_rate)
-	player.policy.model.compile(loss=log_loss, optimizer=sgd)
+	player.policy.model.compile(loss='categorical_crossentropy', optimizer=sgd)
 	board_size = player.policy.model.input_shape[-1]
 	for i_iter in xrange(1, args.iterations + 1):
 		# Train mini-batches by randomly choosing opponent from pool (possibly self)
