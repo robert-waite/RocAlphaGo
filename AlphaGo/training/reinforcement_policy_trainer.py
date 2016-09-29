@@ -126,7 +126,13 @@ def train_batch(player, X_list, y_list, won_game_list, lr):
 			player.policy.model.optimizer.lr.set_value(lr)
 		else:
 			player.policy.model.optimizer.lr.set_value(-lr)
-		player.policy.model.fit(X, y, nb_epoch=1, batch_size=len(X))
+
+		chunk_size = 2
+		X_half = [X[i::chunk_size] for i in range(chunk_size)]
+		y_half = [y[i::chunk_size] for i in range(chunk_size)]
+
+		player.policy.model.fit(X_half[0], y_half[0], nb_epoch=1, batch_size=len(X_half[0]))
+		player.policy.model.fit(X_half[1], y_half[1], nb_epoch=1, batch_size=len(X_half[1]))
 
 
 def run_training(cmd_line_args=None):
@@ -234,9 +240,8 @@ def run_training(cmd_line_args=None):
 		metadata["win_ratio"][player_weights] = (opp_weights, win_ratio)
 		train_batch(player, X_list, y_list, won_game_list, args.learning_rate)
 		# Save intermediate models
-		if i_iter % 100 == 0:
-			player_weights = "weights.%05d.hdf5" % i_iter
-			player.policy.model.save_weights(os.path.join(args.out_directory, player_weights))
+		player_weights = "weights.%05d.hdf5" % i_iter
+		player.policy.model.save_weights(os.path.join(args.out_directory, player_weights))
 		# add player to batch of oppenents once in a while
 		if i_iter % args.save_every == 0:
 			metadata["opponents"].append(player_weights)
